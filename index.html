@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <title>Would You Go Out With Me?</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="question-box">
+            <h1 class="question-text">Would you please<br>go out with me?</h1>
+            <p class="question-text-cn">周末一起出去好吗？</p>
+        </div>
+
+        <div class="button-container">
+            <button class="accept-btn" id="acceptBtn">Accept ✓</button>
+            <button class="reject-btn" id="rejectBtn">Reject ✗</button>
+        </div>
+
+        <input type="date" id="hiddenDatePicker" style="display: none;">
+    </div>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <p id="modalText"></p>
+            <div class="modal-buttons">
+                <button id="modalCancelBtn" class="modal-btn cancel-btn"></button>
+                <button id="modalConfirmBtn" class="modal-btn confirm-btn"></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="datePickerModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>📅 Pick a Date</h2>
+            <p>When should we go out?</p>
+            <input type="date" id="visibleDatePicker" style="width: 100%; padding: 15px; font-size: 18px; margin: 20px 0; border: 2px solid #667eea; border-radius: 10px;">
+            <div class="modal-buttons">
+                <button id="dateCancelBtn" class="modal-btn cancel-btn">Cancel</button>
+                <button id="dateConfirmBtn" class="modal-btn confirm-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
