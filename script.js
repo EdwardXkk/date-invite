@@ -74,17 +74,20 @@ function moveRejectButton() {
 // Show modal
 function showModal(title, text, confirmText, cancelText, onConfirm, onCancel) {
     isModalOpen = true;
+    document.body.classList.add('modal-open');
     modalTitle.textContent = title;
     modalText.textContent = text;
     modalConfirmBtn.textContent = confirmText;
     modalCancelBtn.textContent = cancelText || 'Cancel';
 
-    modalConfirmBtn.onclick = () => {
+    modalConfirmBtn.onclick = (e) => {
+        e.preventDefault();
         hideModal();
         if (onConfirm) onConfirm();
     };
 
-    modalCancelBtn.onclick = () => {
+    modalCancelBtn.onclick = (e) => {
+        e.preventDefault();
         hideModal();
         if (onCancel) onCancel();
     };
@@ -95,6 +98,7 @@ function showModal(title, text, confirmText, cancelText, onConfirm, onCancel) {
 // Hide modal
 function hideModal() {
     isModalOpen = false;
+    document.body.classList.remove('modal-open');
     modal.classList.add('hidden');
 }
 
@@ -130,18 +134,15 @@ function openDatePicker() {
 function showDatePickerModal() {
     isModalOpen = true;
     datePickerModal.classList.remove('hidden');
+    document.body.classList.add('modal-open');
 
     // Set today as default
     const today = new Date().toISOString().split('T')[0];
     visibleDatePicker.value = today;
 
-    // Focus on the date picker to trigger native picker on iOS
+    // Small delay to ensure modal is fully visible
     setTimeout(() => {
         visibleDatePicker.focus();
-        // For iOS Safari, click to trigger the native picker
-        if (visibleDatePicker.click) {
-            visibleDatePicker.click();
-        }
     }, 100);
 }
 
@@ -149,7 +150,7 @@ function showDatePickerModal() {
 function hideDatePickerModal() {
     isModalOpen = false;
     datePickerModal.classList.add('hidden');
-    visibleDatePicker.value = '';
+    document.body.classList.remove('modal-open');
 }
 
 // Handle date selection
@@ -197,9 +198,11 @@ function setupEventListeners() {
     });
 
     // Date picker modal buttons
-    dateConfirmBtn.addEventListener('click', () => {
+    dateConfirmBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         const selectedDate = visibleDatePicker.value;
         hideDatePickerModal();
+
         if (selectedDate) {
             onDateSelected(selectedDate);
         } else {
@@ -207,18 +210,20 @@ function setupEventListeners() {
         }
     });
 
-    dateCancelBtn.addEventListener('click', () => {
+    dateCancelBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         hideDatePickerModal();
     });
 
-    // Date picker change (auto-confirm on selection)
+    // Date picker change - just update state, don't auto-confirm
     visibleDatePicker.addEventListener('change', (e) => {
-        if (e.target.value) {
-            setTimeout(() => {
-                hideDatePickerModal();
-                onDateSelected(e.target.value);
-            }, 300);
-        }
+        e.preventDefault();
+        // Value is already updated, wait for user to confirm
+    });
+
+    // Prevent date picker click from closing modal
+    visibleDatePicker.addEventListener('click', (e) => {
+        e.stopPropagation();
     });
 
     // Handle resize
