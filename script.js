@@ -18,6 +18,16 @@ const modalText = document.getElementById('modalText');
 const modalConfirmBtn = document.getElementById('modalConfirmBtn');
 const modalCancelBtn = document.getElementById('modalCancelBtn');
 
+// Contact/Notification modal elements
+const contactModal = document.getElementById('contactModal');
+const emailInput = document.getElementById('emailInput');
+const phoneInput = document.getElementById('phoneInput');
+const contactCancelBtn = document.getElementById('contactCancelBtn');
+const contactConfirmBtn = document.getElementById('contactConfirmBtn');
+
+// Selected date storage
+let selectedDate = '';
+
 // Initialize
 function init() {
     positionRejectButton();
@@ -157,19 +167,173 @@ function hideDatePickerModal() {
 function onDateSelected(date) {
     if (!date) return;
 
+    selectedDate = date;
     const [year, month, day] = date.split('-');
 
-    setTimeout(() => {
-        showModal(
-            '✨ Date Confirmed!',
-            `Great! Let's meet on ${month}/${day}/${year}!\nCan't wait! 😊`,
-            'Awesome!',
-            '',
-            () => {
-                showToast('See you then! 💕');
-            }
-        );
-    }, 100);
+    // Show contact modal to collect notification info
+    showContactModal();
+}
+
+// Show contact modal
+function showContactModal() {
+    isModalOpen = true;
+    contactModal.classList.remove('hidden');
+    document.body.classList.add('modal-open');
+
+    // Clear inputs
+    emailInput.value = '';
+    phoneInput.value = '';
+}
+
+// Hide contact modal
+function hideContactModal() {
+    isModalOpen = false;
+    contactModal.classList.add('hidden');
+    document.body.classList.remove('modal-open');
+}
+
+// Send notifications (multiple methods)
+async function sendNotifications() {
+    const email = emailInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const [year, month, day] = selectedDate.split('-');
+
+    const notificationData = {
+        date: `${month}/${day}/${year}`,
+        timestamp: new Date().toISOString(),
+        email: email,
+        phone: phone,
+        location: window.location.href
+    };
+
+    hideContactModal();
+
+    // Show loading
+    showToast('Sending notifications... 📤');
+
+    try {
+        // Method 1: Email notification (using mailto for simplicity)
+        if (email) {
+            sendEmailNotification(email, month, day, year);
+        }
+
+        // Method 2: SMS via Twilio (requires API keys)
+        if (phone) {
+            await sendSMSNotification(phone, month, day, year);
+        }
+
+        // Method 3: Save to localStorage for backup
+        saveToLocalStorage(notificationData);
+
+        // Method 4: Webhook (you can add your own endpoint)
+        await sendToWebhook(notificationData);
+
+        // Show success message
+        setTimeout(() => {
+            showConfirmation(month, day, year);
+        }, 500);
+
+    } catch (error) {
+        console.error('Notification error:', error);
+        showToast('Date saved! Share it manually 📅');
+        setTimeout(() => {
+            showConfirmation(month, day, year);
+        }, 1500);
+    }
+}
+
+// Send email notification
+function sendEmailNotification(email, month, day, year) {
+    const subject = encodeURIComponent('💕 Date Confirmed!');
+    const body = encodeURIComponent(
+        `Great news! Someone has accepted your date invitation!\n\n` +
+        `📅 Date: ${month}/${day}/${year}\n` +
+        `⏰ Time: ${new Date().toLocaleTimeString()}\n` +
+        `💝 Your date invite link is ready to share!`
+    );
+
+    // Open default email client
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
+// Send SMS via Twilio (you need to configure this)
+async function sendSMSNotification(phone, month, day, year) {
+    // Option 1: Using Twilio (requires account)
+    // Uncomment and configure if you have Twilio:
+    /*
+    const response = await fetch('https://api.twilio.com/2010-04-01/Accounts/YOUR_ACCOUNT_SID/Messages.json', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Basic ' + btoa('YOUR_ACCOUNT_SID:YOUR_AUTH_TOKEN'),
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            To: phone,
+            From: 'YOUR_TWILIO_NUMBER',
+            Body: `💕 Date confirmed: ${month}/${day}/${year}!`
+        })
+    });
+    return response.json();
+    */
+
+    // Option 2: Simple SMS link (opens default SMS app)
+    const message = encodeURIComponent(`💕 Date confirmed: ${month}/${day}/${year}!`);
+    window.location.href = `sms:${phone}?body=${message}`;
+
+    return { success: true };
+}
+
+// Save to localStorage (backup)
+function saveToLocalStorage(data) {
+    const dates = JSON.parse(localStorage.getItem('dateInvites') || '[]');
+    dates.push(data);
+    localStorage.setItem('dateInvites', JSON.stringify(dates));
+}
+
+// Send to webhook (optional - add your own endpoint)
+async function sendToWebhook(data) {
+    // Option 1: Discord Webhook
+    const discordWebhook = localStorage.getItem('discordWebhook');
+    if (discordWebhook) {
+        await fetch(discordWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                content: `💕 **New Date Accepted!**\n📅 Date: ${data.date}\n⏰ Time: ${new Date(data.timestamp).toLocaleString()}`,
+                embeds: [{
+                    title: "Date Confirmed!",
+                    description: `Someone has accepted your date invitation!\n\n**Date:** ${data.date}\n**Time:** ${new Date(data.timestamp).toLocaleTimeString()}`,
+                    color: 15158332,
+                    footer: { text: "Date Invite App" }
+                }]
+            })
+        });
+    }
+
+    // Option 2: Custom webhook (add your endpoint)
+    // const customWebhook = localStorage.getItem('customWebhook');
+    // if (customWebhook) {
+    //     await fetch(customWebhook, {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify(data)
+    //     });
+    // }
+
+    return { success: true };
+}
+
+// Show final confirmation
+function showConfirmation(month, day, year) {
+    showModal(
+        '✨ Date Confirmed!',
+        `Great! Let's meet on ${month}/${day}/${year}!\nCan't wait! 😊`,
+        'Awesome!',
+        '',
+        () => {
+            showToast('See you then! 💕');
+        }
+    );
 }
 
 // Event Listeners
@@ -226,6 +390,33 @@ function setupEventListeners() {
         e.stopPropagation();
     });
 
+    // Contact modal buttons
+    contactConfirmBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        sendNotifications();
+    });
+
+    contactCancelBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        hideContactModal();
+        // Still show confirmation even without contact info
+        const [year, month, day] = selectedDate.split('-');
+        showConfirmation(month, day, year);
+    });
+
+    // Allow Enter key to submit contact form
+    emailInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            phoneInput.focus();
+        }
+    });
+
+    phoneInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendNotifications();
+        }
+    });
+
     // Handle resize
     window.addEventListener('resize', () => {
         if (!isModalOpen) {
@@ -250,7 +441,7 @@ function handleAccept() {
         () => {
             hideModal();
             setTimeout(() => {
-                openDatePicker();
+                showDatePickerModal();
             }, 300);
         }
     );

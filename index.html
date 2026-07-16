@@ -46,6 +46,20 @@
         </div>
     </div>
 
+    <!-- Optional: Contact info modal for notifications -->
+    <div id="contactModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>📱 Get Notified</h2>
+            <p>Enter your info to receive date confirmation:</p>
+            <input type="email" id="emailInput" placeholder="Your email (optional)" style="width: 100%; padding: 15px; font-size: 18px; margin: 20px 0; border: 2px solid #667eea; border-radius: 10px;">
+            <input type="tel" id="phoneInput" placeholder="Phone number (optional)" style="width: 100%; padding: 15px; font-size: 18px; margin: 20px 0; border: 2px solid #667eea; border-radius: 10px;">
+            <div class="modal-buttons">
+                <button id="contactCancelBtn" class="modal-btn cancel-btn">Skip</button>
+                <button id="contactConfirmBtn" class="modal-btn confirm-btn">Send</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
